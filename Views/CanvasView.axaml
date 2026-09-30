@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:b="using:HmiDesigner.Behaviors"
+             xmlns:vm="using:HmiDesigner.ViewModels"
+             x:Class="HmiDesigner.Views.CanvasView"
+             x:DataType="vm:MainViewModel">
+
+    <Canvas x:Name="MainCanvas" Background="White">
+        <ItemsControl ItemsSource="{Binding Elements}"
+                        Width="{Binding $parent[Canvas].Bounds.Width}"
+                        Height="{Binding $parent[Canvas].Bounds.Height}">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemContainerTheme>
+                <ControlTheme TargetType="ContentPresenter" x:DataType="vm:HmiElementViewModel">
+                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                </ControlTheme>
+            </ItemsControl.ItemContainerTheme>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:HmiElementViewModel">
+                    <Grid Width="{Binding Width}" Height="{Binding Height}">
+
+                        <i:Interaction.Behaviors>
+                            <b:DraggableBehavior />
+                        </i:Interaction.Behaviors>
+
+                        <Border BorderBrush="DodgerBlue"
+                                BorderThickness="2"
+                                Background="Transparent"
+                                IsHitTestVisible="False"
+                                IsVisible="{Binding IsSelected}" />
+
+                        <Button Content="{Binding Text}"
+                                Background="Orange"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                    ConverterParameter={x:Static vm:ShapeType.Rectangle}}" />
+
+                        <Ellipse Fill="Orange"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                    ConverterParameter={x:Static vm:ShapeType.Ellipse}}" />
+
+                        <Rectangle Width="10" Height="10"
+                                    Fill="Blue"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    Margin="0,-5,-5,0"
+                                    Cursor="TopRightCorner">
+
+                            <i:Interaction.Behaviors>
+                                <b:ResizableBehavior />
+                            </i:Interaction.Behaviors>
+                        </Rectangle>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+
+        </ItemsControl>
+    </Canvas>
+</UserControl>

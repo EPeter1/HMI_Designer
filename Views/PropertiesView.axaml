@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HmiDesigner.ViewModels"
+             x:Class="HmiDesigner.Views.PropertiesView"
+             x:DataType="vm:MainViewModel">
+
+    <Border Width="250"
+            Background="#F3F3F3"
+            BorderBrush="#DDDDDD"
+            BorderThickness="1,0,0,0"
+            Padding="15">
+
+        <StackPanel DataContext="{Binding SelectedElement}" Spacing="10">
+            <TextBlock Text="Properties" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
+
+            <TextBlock Text="No element selected"
+                        IsVisible="{Binding, Converter={x:Static ObjectConverters.IsNull}}" />
+
+            <StackPanel Spacing="8"
+                        IsVisible="{Binding, Converter={x:Static ObjectConverters.IsNotNull}}">
+
+                <TextBlock Text="Text:" FontSize="12" />
+                <TextBox Text="{Binding Text}" />
+
+                <TextBlock Text="Position (x):" FontSize="12" />
+                <TextBox Text="{Binding X}" />
+
+                <TextBlock Text="Position (y)" FontSize="12" />
+                <TextBox Text="{Binding Y}" />
+
+                <TextBlock Text="Width:" FontSize="12" />
+                <TextBox Text="{Binding Width}" />
+
+                <TextBlock Text="Height:" FontSize="12" />
+                <TextBox Text="{Binding Height}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

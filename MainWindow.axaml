@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:b="using:HmiDesigner.Behaviors"
+        xmlns:vm="using:HmiDesigner.ViewModels"
+        xmlns:views="using:HmiDesigner.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="HmiDesigner.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Width="1000"
+        Height="700"
+        Title="HMI Designer">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyCommand}" />
+        <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteCommand}" />
+        <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding ClearSelectionCommand}" />
+    </Window.KeyBindings>
+
+    <DockPanel>
+        <views:MenuView DockPanel.Dock="Top" />
+        <views:ToolboxView DockPanel.Dock="Left" />
+        <views:PropertiesView DockPanel.Dock="Right" />
+        <views:CanvasView />
+    </DockPanel>
+</Window>

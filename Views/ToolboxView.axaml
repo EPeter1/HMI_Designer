@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HmiDesigner.ViewModels"
+             x:Class="HmiDesigner.Views.ToolboxView"
+             x:DataType="vm:MainViewModel">
+
+    <Border Width="200"
+            Background="#F3F3F3"
+            BorderBrush="#DDDDDD"
+            BorderThickness="0,0,1,0"
+            Padding="15">
+
+        <StackPanel Spacing="10">
+            <TextBlock Text="Toolbox" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
+
+            <Button Content="Rectangle"
+                    Command="{Binding AddCommand}"
+                    CommandParameter="Rectangle"
+                    HorizontalAlignment="Stretch" />
+
+            <Button Content="Circle"
+                    Command="{Binding AddCommand}"
+                    CommandParameter="Ellipse"
+                    HorizontalAlignment="Stretch" />
+        </StackPanel>
+    </Border>
+</UserControl>

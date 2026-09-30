@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HmiDesigner.ViewModels"
+             x:Class="HmiDesigner.Views.MenuView"
+             x:DataType="vm:MainViewModel">
+
+    <Menu>
+        <MenuItem Header="_File">
+            <MenuItem Header="New" />
+            <MenuItem Header="Open" />
+            <MenuItem Header="Save" />
+            <Separator />
+            <MenuItem Header="Exit" />
+        </MenuItem>
+
+        <MenuItem Header="_Edit">
+            <MenuItem Header="Copy" Command="{Binding CopyCommand}" />
+            <MenuItem Header="Paste" Command="{Binding PasteCommand}" />
+            <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
+        </MenuItem>
+
+        <MenuItem Header="_Settings">
+        </MenuItem>
+
+        <MenuItem Header="_Window">
+            <MenuItem Header="Reset Layout" />
+        </MenuItem>
+
+        <MenuItem Header="_Help">
+            <MenuItem Header="About" />
+        </MenuItem>
+    </Menu>
+</UserControl>
