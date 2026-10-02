@@ -6,9 +6,12 @@
 
     <Menu>
         <MenuItem Header="_File">
-            <MenuItem Header="New" />
-            <MenuItem Header="Open" />
-            <MenuItem Header="Save" />
+            <MenuItem Header="New" Command="{Binding NewCommand}"
+                    CommandParameter="{Binding $parent[Window]}" />
+            <MenuItem Header="Open" Command="{Binding OpenCommand}"
+                    CommandParameter="{Binding $parent[Window]}" />
+            <MenuItem Header="Save" Command="{Binding SaveCommand}"
+                    CommandParameter="{Binding $parent[Window]}" />
             <Separator />
             <MenuItem Header="Exit" />
         </MenuItem>
