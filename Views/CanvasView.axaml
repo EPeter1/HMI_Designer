@@ -7,6 +7,10 @@
              x:DataType="vm:MainViewModel">
 
     <Canvas x:Name="MainCanvas" Background="White">
+        <i:Interaction.Behaviors>
+            <b:CanvasSelectionBehavior />
+        </i:Interaction.Behaviors>
+
         <ItemsControl ItemsSource="{Binding Elements}"
                         Width="{Binding $parent[Canvas].Bounds.Width}"
                         Height="{Binding $parent[Canvas].Bounds.Height}">

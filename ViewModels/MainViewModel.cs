@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
-    private HmiElementViewModel? _clipboardElement;
+    private List<HmiElementViewModel> _clipboardElements = new();
 
     [ObservableProperty]
     private HmiElementViewModel? _selectedElement;
@@ -79,9 +80,15 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void Delete()
     {
-        if (SelectedElement != null)
+        var elementsToDelete = Elements.Where(element => element.IsSelected).ToList();
+
+        if (elementsToDelete.Count > 0)
         {
-            Elements.Remove(SelectedElement);
+            foreach (var element in elementsToDelete)
+            {
+                Elements.Remove(element);
+            }
+
             SelectedElement = null;
         }
     }
@@ -89,44 +96,55 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void Copy()
     {
-        if (SelectedElement != null)
+        _clipboardElements.Clear();
+
+        foreach (var element in Elements.Where(element => element.IsSelected))
         {
-            _clipboardElement = new HmiElementViewModel
+            _clipboardElements.Add(new HmiElementViewModel
             {
-                ShapeType = SelectedElement.ShapeType,
-                X = SelectedElement.X,
-                Y = SelectedElement.Y,
-                Width = SelectedElement.Width,
-                Height = SelectedElement.Height,
-                Text = SelectedElement.Text
-            };
+                ShapeType = element.ShapeType,
+                X = element.X,
+                Y = element.Y,
+                Width = element.Width,
+                Height = element.Height,
+                Text = element.Text
+            });
         }
     }
 
     [RelayCommand]
     public void Paste()
     {
-        if (_clipboardElement != null)
+        if (_clipboardElements.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var element in Elements)
+        {
+            element.IsSelected = false;
+        }
+
+        var pastedElements = new List<HmiElementViewModel>();
+
+        foreach (var clipElement in _clipboardElements)
         {
             var newElement = new HmiElementViewModel
             {
-                ShapeType = _clipboardElement.ShapeType,
-                X = _clipboardElement.X + 20,
-                Y = _clipboardElement.Y + 20,
-                Width = _clipboardElement.Width,
-                Height = _clipboardElement.Height,
-                Text = _clipboardElement.Text
+                ShapeType = clipElement.ShapeType,
+                X = clipElement.X + 20,
+                Y = clipElement.Y + 20,
+                Width = clipElement.Width,
+                Height = clipElement.Height,
+                Text = clipElement.Text,
+                IsSelected = true
             };
 
             Elements.Add(newElement);
-
-            foreach (var element in Elements)
-            {
-                element.IsSelected = element == newElement;
-            }
-
-            SelectedElement = newElement;
+            pastedElements.Add(newElement);
         }
+
+        SelectedElement = pastedElements.FirstOrDefault();
     }
 
     [RelayCommand]
@@ -225,6 +243,29 @@ public partial class MainViewModel : ObservableObject
             foreach (var element in Elements)
             {
                 element.IsSelected = element == hmiElement;
+            }
+        }
+
+        SelectedElement = Elements.FirstOrDefault(element => element.IsSelected);
+    }
+
+    public void SelectElementsInRectangle(Avalonia.Rect selectionRect, bool isCtrlDown, bool isShiftDown)
+    {
+        if (!isCtrlDown && !isShiftDown)
+        {
+            foreach (var element in Elements)
+            {
+                element.IsSelected = false;
+            }
+        }
+
+        foreach (var element in Elements)
+        {
+            var elementRect = new Avalonia.Rect(element.X, element.Y, element.Width, element.Height);
+
+            if (selectionRect.Contains(elementRect) || selectionRect.Intersects(elementRect))
+            {
+                element.IsSelected = true;
             }
         }
 
