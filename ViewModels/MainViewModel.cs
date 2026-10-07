@@ -113,6 +113,13 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void Cut()
+    {
+        Copy();
+        Delete();
+    }
+
+    [RelayCommand]
     public void Paste()
     {
         if (_clipboardElements.Count == 0)
@@ -145,6 +152,17 @@ public partial class MainViewModel : ObservableObject
         }
 
         SelectedElement = pastedElements.FirstOrDefault();
+    }
+
+    [RelayCommand]
+    private void SelectAll()
+    {
+        foreach (var element in Elements)
+        {
+            element.IsSelected = true;
+        }
+
+        SelectedElement = Elements.FirstOrDefault();
     }
 
     [RelayCommand]

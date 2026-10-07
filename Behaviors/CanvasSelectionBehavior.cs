@@ -42,6 +42,13 @@ public class CanvasSelectionBehavior : Behavior<Canvas>
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs eventArgs)
     {
+        var point = eventArgs.GetCurrentPoint(AssociatedObject);
+
+        if (!point.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
         if (eventArgs.Source is Canvas &&
             eventArgs.Source == AssociatedObject && AssociatedObject.DataContext is MainViewModel mainVm)
         {

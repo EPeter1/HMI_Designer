@@ -16,6 +16,7 @@
     <Window.KeyBindings>
         <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding ClearSelectionCommand}" />
+        <KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAllCommand}" />
         <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyCommand}" />
         <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCommand}"
                     CommandParameter="{Binding $parent[Window]}" />
@@ -24,6 +25,7 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"
                     CommandParameter="{Binding $parent[Window]}" />
         <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteCommand}" />
+        <KeyBinding Gesture="Ctrl+X" Command="{Binding CutCommand}" />
     </Window.KeyBindings>
 
     <DockPanel>

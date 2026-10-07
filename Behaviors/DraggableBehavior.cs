@@ -39,30 +39,36 @@ public class DraggableBehavior : Behavior<Grid>
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs eventArgs)
     {
-        if (AssociatedObject?.DataContext is HmiElementViewModel elementVm)
-        {
-            _isDragging = true;
-            var canvas = AssociatedObject.FindLogicalAncestorOfType<Canvas>();
+        var point = eventArgs.GetCurrentPoint(AssociatedObject);
+        var canvas = AssociatedObject?.FindLogicalAncestorOfType<Canvas>();
 
-            if (canvas != null)
+        if (AssociatedObject?.DataContext is HmiElementViewModel elementVm &&
+            canvas?.DataContext is MainViewModel mainVm)
+        {
+            if (point.Properties.IsLeftButtonPressed)
             {
+                _isDragging = true;
                 _pointerStartPosition = eventArgs.GetPosition(canvas);
 
                 var modifiers = eventArgs.KeyModifiers;
                 bool isCtrlDown = modifiers.HasFlag(KeyModifiers.Control);
                 bool isShiftDown = modifiers.HasFlag(KeyModifiers.Shift);
 
-                if (canvas.DataContext is MainViewModel mainVm)
+                if (isCtrlDown || isShiftDown || !elementVm.IsSelected)
                 {
-                    if (isCtrlDown || isShiftDown || !elementVm.IsSelected)
-                    {
-                        mainVm.HandleSelection(elementVm, isCtrlDown, isShiftDown);
-                    }
+                    mainVm.HandleSelection(elementVm, isCtrlDown, isShiftDown);
+                }
+
+                eventArgs.Pointer.Capture(AssociatedObject);
+                eventArgs.Handled = true;
+            }
+            else if (point.Properties.IsRightButtonPressed)
+            {
+                if (!elementVm.IsSelected)
+                {
+                    mainVm.HandleSelection(elementVm, false, false);
                 }
             }
-
-            eventArgs.Pointer.Capture(AssociatedObject);
-            eventArgs.Handled = true;
         }
     }
 

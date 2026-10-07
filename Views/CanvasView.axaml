@@ -11,6 +11,14 @@
             <b:CanvasSelectionBehavior />
         </i:Interaction.Behaviors>
 
+        <Canvas.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Select all" Command="{Binding SelectAllCommand}" />
+                <Separator />
+                <MenuItem Header="Paste" Command="{Binding PasteCommand}" />
+            </ContextMenu>
+        </Canvas.ContextMenu>
+
         <ItemsControl ItemsSource="{Binding Elements}"
                         Width="{Binding $parent[Canvas].Bounds.Width}"
                         Height="{Binding $parent[Canvas].Bounds.Height}">
@@ -32,9 +40,40 @@
                 <DataTemplate x:DataType="vm:HmiElementViewModel">
                     <Grid Width="{Binding Width}" Height="{Binding Height}">
 
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Cut" Command="{Binding $parent[UserControl].DataContext.CutCommand}" />
+                                <MenuItem Header="Copy" Command="{Binding $parent[UserControl].DataContext.CopyCommand}" />
+                                <Separator />
+                                <MenuItem Header="Delete" Command="{Binding $parent[UserControl].DataContext.DeleteCommand}" />
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+
                         <i:Interaction.Behaviors>
                             <b:DraggableBehavior />
                         </i:Interaction.Behaviors>
+
+                        <Border Background="Orange"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                    ConverterParameter={x:Static vm:ShapeType.Rectangle}}">
+                                <TextBlock Text="{Binding Text}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="Black" />
+                        </Border>
+
+                        <Panel IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                ConverterParameter={x:Static vm:ShapeType.Ellipse}}">
+                            <Ellipse Fill="Orange"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch" />
+                            <TextBlock Text="{Binding Text}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="Black" />
+                        </Panel>
 
                         <Border BorderBrush="DodgerBlue"
                                 BorderThickness="2"
@@ -42,24 +81,12 @@
                                 IsHitTestVisible="False"
                                 IsVisible="{Binding IsSelected}" />
 
-                        <Button Content="{Binding Text}"
-                                Background="Orange"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
-                                    ConverterParameter={x:Static vm:ShapeType.Rectangle}}" />
-
-                        <Ellipse Fill="Orange"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
-                                    ConverterParameter={x:Static vm:ShapeType.Ellipse}}" />
-
                         <Rectangle Width="10" Height="10"
                                     Fill="Blue"
                                     HorizontalAlignment="Right" VerticalAlignment="Top"
                                     Margin="0,-5,-5,0"
-                                    Cursor="TopRightCorner">
+                                    Cursor="TopRightCorner"
+                                    IsVisible="{Binding IsSelected}">
 
                             <i:Interaction.Behaviors>
                                 <b:ResizableBehavior />
