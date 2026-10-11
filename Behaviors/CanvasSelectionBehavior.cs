@@ -50,7 +50,7 @@ public class CanvasSelectionBehavior : Behavior<Canvas>
         }
 
         if (eventArgs.Source is Canvas &&
-            eventArgs.Source == AssociatedObject && AssociatedObject.DataContext is MainViewModel mainVm)
+            eventArgs.Source == AssociatedObject && AssociatedObject.DataContext is HmiPanelViewModel panelVm)
         {
             _isSelecting = true;
             _pointerStartPosition = eventArgs.GetPosition(AssociatedObject);
@@ -61,7 +61,7 @@ public class CanvasSelectionBehavior : Behavior<Canvas>
 
             if (!isCtrlDown && !isShiftDown)
             {
-                mainVm.ClearSelectionCommand.Execute(null);
+                panelVm.ClearSelectionCommand.Execute(null);
             }
 
             _selectionBox = new Rectangle
@@ -109,7 +109,7 @@ public class CanvasSelectionBehavior : Behavior<Canvas>
         {
             _isSelecting = false;
 
-            if (AssociatedObject.DataContext is MainViewModel mainVm)
+            if (AssociatedObject.DataContext is HmiPanelViewModel panelVm)
             {
                 double x = Canvas.GetLeft(_selectionBox);
                 double y = Canvas.GetTop(_selectionBox);
@@ -119,7 +119,7 @@ public class CanvasSelectionBehavior : Behavior<Canvas>
                 bool isCtrlDown = modifiers.HasFlag(KeyModifiers.Control);
                 bool isShiftDown = modifiers.HasFlag(KeyModifiers.Shift);
 
-                mainVm.SelectElementsInRectangle(rect, isCtrlDown, isShiftDown);
+                panelVm.SelectElementsInRectangle(rect, isCtrlDown, isShiftDown);
             }
 
             AssociatedObject.Children.Remove(_selectionBox);

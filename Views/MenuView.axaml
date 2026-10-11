@@ -17,9 +17,9 @@
         </MenuItem>
 
         <MenuItem Header="_Edit">
-            <MenuItem Header="Copy" Command="{Binding CopyCommand}" />
-            <MenuItem Header="Paste" Command="{Binding PasteCommand}" />
-            <MenuItem Header="Delete" Command="{Binding DeleteCommand}" />
+            <MenuItem Header="Copy" Command="{Binding SelectedPanel.CopyCommand}" />
+            <MenuItem Header="Paste" Command="{Binding SelectedPanel.PasteCommand}" />
+            <MenuItem Header="Delete" Command="{Binding SelectedPanel.DeleteCommand}" />
         </MenuItem>
 
         <MenuItem Header="_Settings">

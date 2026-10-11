@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -16,10 +16,10 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
-    private List<HmiElementViewModel> _clipboardElements = new();
+    private int _panelCounter = 1;
 
     [ObservableProperty]
-    private HmiElementViewModel? _selectedElement;
+    private HmiPanelViewModel? _selectedPanel;
 
     [ObservableProperty]
     private string _windowTitle = "HMI Designer - [New Project]*";
@@ -27,153 +27,55 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isModified;
 
-    public ObservableCollection<HmiElementViewModel> Elements { get; } = new();
+    public ObservableCollection<HmiPanelViewModel> Panels { get; } = new();
 
     public MainViewModel(MainViewModelServices services)
     {
         _dialogService = services.DialogService;
         _fileService = services.FileService;
 
-        Elements.CollectionChanged += (sender, eventArgs) =>
+        Panels.CollectionChanged += (sender, eventArgs) =>
         {
             MarkAsModified();
 
             if (eventArgs.NewItems != null)
             {
-                foreach (HmiElementViewModel item in eventArgs.NewItems)
+                foreach (HmiPanelViewModel panel in eventArgs.NewItems)
                 {
-                    item.PropertyChanged += (sender, eventArgs) => MarkAsModified();
+                    HookPanelEvents(panel);
                 }
             }
         };
 
-        var initialElement = new HmiElementViewModel();
-        Elements.Add(initialElement);
-        SelectedElement = initialElement;
+        var initialPanel = new HmiPanelViewModel($"Panel {_panelCounter++}");
+        Panels.Add(initialPanel);
+        SelectedPanel = initialPanel;
+
+        HookPanelEvents(initialPanel);
     }
 
     [RelayCommand]
-    public void Add(string shapeTypeString)
+    public void AddPanel()
     {
-        var shapeType = shapeTypeString == "Ellipse" ? ShapeType.Ellipse : ShapeType.Rectangle;
+        var newPanel = new HmiPanelViewModel($"Panel {_panelCounter++}");
+        Panels.Add(newPanel);
+        SelectedPanel = newPanel;
 
-        foreach (var element in Elements)
-        {
-            element.IsSelected = false;
-        }
-
-        var newElement = new HmiElementViewModel
-        {
-            ShapeType = shapeType,
-            IsSelected = true,
-            X = 150,
-            Y = 150,
-            Width = shapeType == ShapeType.Ellipse ? 80 : 150,
-            Height = 80,
-            Text = "HMI Button"
-        };
-
-        Elements.Add(newElement);
-        SelectedElement = newElement;
+        IsModified = true;
     }
 
     [RelayCommand]
-    public void Delete()
+    public void DeletePanel(HmiPanelViewModel panel)
     {
-        var elementsToDelete = Elements.Where(element => element.IsSelected).ToList();
+        int index = Panels.IndexOf(panel);
+        Panels.Remove(panel);
 
-        if (elementsToDelete.Count > 0)
+        if (SelectedPanel == panel)
         {
-            foreach (var element in elementsToDelete)
-            {
-                Elements.Remove(element);
-            }
-
-            SelectedElement = null;
-        }
-    }
-
-    [RelayCommand]
-    public void Copy()
-    {
-        _clipboardElements.Clear();
-
-        foreach (var element in Elements.Where(element => element.IsSelected))
-        {
-            _clipboardElements.Add(new HmiElementViewModel
-            {
-                ShapeType = element.ShapeType,
-                X = element.X,
-                Y = element.Y,
-                Width = element.Width,
-                Height = element.Height,
-                Text = element.Text
-            });
-        }
-    }
-
-    [RelayCommand]
-    public void Cut()
-    {
-        Copy();
-        Delete();
-    }
-
-    [RelayCommand]
-    public void Paste()
-    {
-        if (_clipboardElements.Count == 0)
-        {
-            return;
+            SelectedPanel = Panels[Math.Clamp(index - 1, 0, Panels.Count - 1)];
         }
 
-        foreach (var element in Elements)
-        {
-            element.IsSelected = false;
-        }
-
-        var pastedElements = new List<HmiElementViewModel>();
-
-        foreach (var clipElement in _clipboardElements)
-        {
-            var newElement = new HmiElementViewModel
-            {
-                ShapeType = clipElement.ShapeType,
-                X = clipElement.X + 20,
-                Y = clipElement.Y + 20,
-                Width = clipElement.Width,
-                Height = clipElement.Height,
-                Text = clipElement.Text,
-                IsSelected = true
-            };
-
-            Elements.Add(newElement);
-            pastedElements.Add(newElement);
-        }
-
-        SelectedElement = pastedElements.FirstOrDefault();
-    }
-
-    [RelayCommand]
-    private void SelectAll()
-    {
-        foreach (var element in Elements)
-        {
-            element.IsSelected = true;
-        }
-
-        SelectedElement = Elements.FirstOrDefault();
-    }
-
-    [RelayCommand]
-    public void ClearSelection()
-    {
-        foreach (var element in Elements)
-        {
-            element.IsSelected = false;
-        }
-
-        SelectedElement = null;
+        IsModified = true;
     }
 
     [RelayCommand]
@@ -193,12 +95,16 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
-        Elements.Clear();
+        Panels.Clear();
+        _panelCounter = 1;
+
+        var newPanel = new HmiPanelViewModel($"Panel {_panelCounter++}");
+        Panels.Add(newPanel);
+        SelectedPanel = newPanel;
+
         _fileService.Reset();
         IsModified = false;
-
         WindowTitle = "HMI Designer - [New Project]*";
-        SelectedElement = null;
     }
 
     [RelayCommand]
@@ -208,17 +114,39 @@ public partial class MainViewModel : ObservableObject
 
         if (!string.IsNullOrEmpty(filePath))
         {
-            var loadedElements = await _fileService.LoadAsync(filePath);
+            var loadedPanels = await _fileService.LoadAsync(filePath);
 
-            Elements.Clear();
-            foreach (var element in loadedElements)
+            Panels.Clear();
+            _panelCounter = 1;
+
+            foreach (var panelData in loadedPanels)
             {
-                Elements.Add(element);
+                var panel = new HmiPanelViewModel(panelData.PanelName);
+                panel.Elements.Clear();
+
+                foreach (var element in panelData.Elements)
+                {
+                    panel.Elements.Add(element);
+                }
+
+                panel.SelectedElement = panel.Elements.FirstOrDefault();
+                
+                Panels.Add(panel);
+                HookPanelEvents(panel);
+                _panelCounter++;
             }
+
+            if (Panels.Count == 0)
+            {
+                var initialPanel = new HmiPanelViewModel($"Panel {_panelCounter++}");
+                Panels.Add(initialPanel);
+                HookPanelEvents(initialPanel);
+            }
+
+            SelectedPanel = Panels.FirstOrDefault();
 
             IsModified = false;
             WindowTitle = $"HMI Designer - {Path.GetFileName(filePath)}";
-            SelectedElement = Elements.FirstOrDefault();
         }
     }
 
@@ -246,59 +174,12 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    public void HandleSelection(HmiElementViewModel hmiElement, bool isCtrlDown, bool isShiftDown)
+    public void MovePanel(int oldIndex, int newIndex)
     {
-        if (isCtrlDown)
+        if (oldIndex >= 0 && oldIndex < Panels.Count && newIndex >= 0 && newIndex < Panels.Count && oldIndex != newIndex)
         {
-            hmiElement.IsSelected = !hmiElement.IsSelected;
-        }
-        else if (isShiftDown)
-        {
-            hmiElement.IsSelected = true;
-        }
-        else
-        {
-            foreach (var element in Elements)
-            {
-                element.IsSelected = element == hmiElement;
-            }
-        }
-
-        SelectedElement = Elements.FirstOrDefault(element => element.IsSelected);
-    }
-
-    public void SelectElementsInRectangle(Avalonia.Rect selectionRect, bool isCtrlDown, bool isShiftDown)
-    {
-        if (!isCtrlDown && !isShiftDown)
-        {
-            foreach (var element in Elements)
-            {
-                element.IsSelected = false;
-            }
-        }
-
-        foreach (var element in Elements)
-        {
-            var elementRect = new Avalonia.Rect(element.X, element.Y, element.Width, element.Height);
-
-            if (selectionRect.Contains(elementRect) || selectionRect.Intersects(elementRect))
-            {
-                element.IsSelected = true;
-            }
-        }
-
-        SelectedElement = Elements.FirstOrDefault(element => element.IsSelected);
-    }
-
-    public void MoveSelectedElements(double deltaX, double deltaY)
-    {
-        foreach (var element in Elements)
-        {
-            if (element.IsSelected)
-            {
-                element.X += deltaX;
-                element.Y += deltaY;
-            }
+            Panels.Move(oldIndex, newIndex);
+            SelectedPanel = Panels[newIndex];
         }
     }
 
@@ -312,9 +193,33 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private void HookPanelEvents(HmiPanelViewModel panel)
+    {
+        panel.PropertyChanged += (sender, eventArgs) => MarkAsModified();
+
+        panel.Elements.CollectionChanged += (sender, eventArgs) =>
+        {
+            MarkAsModified();
+
+            if (eventArgs.NewItems != null)
+            {
+                foreach (HmiElementViewModel item in eventArgs.NewItems)
+                {
+                    item.PropertyChanged += (sender, eventArgs) => MarkAsModified();
+                }
+            }
+        };
+
+        foreach (var element in panel.Elements)
+        {
+            element.PropertyChanged += (sender, eventArgs) => MarkAsModified();
+        }
+    }
+
     private async Task SaveToFileAsync(string path)
     {
-        await _fileService.SaveAsync(path, Elements);
+        await _fileService.SaveAsync(path, Panels);
+
         IsModified = false;
         WindowTitle = $"HMI Designer - {Path.GetFileName(path)}";
     }

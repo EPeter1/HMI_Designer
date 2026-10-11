@@ -3,99 +3,169 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:b="using:HmiDesigner.Behaviors"
              xmlns:vm="using:HmiDesigner.ViewModels"
+             xmlns:sys="using:System"
              x:Class="HmiDesigner.Views.CanvasView"
              x:DataType="vm:MainViewModel">
 
-    <Canvas x:Name="MainCanvas" Background="White">
-        <i:Interaction.Behaviors>
-            <b:CanvasSelectionBehavior />
-        </i:Interaction.Behaviors>
+    <StackPanel Orientation="Vertical">
+        <Grid ColumnDefinitions="*, Auto" Margin="5">
+            <TabControl Grid.Column="0" ItemsSource="{Binding Panels}" SelectedItem="{Binding SelectedPanel}">
+                <TabControl.ContentTemplate>
+                    <DataTemplate x:DataType="vm:HmiPanelViewModel">
+                        <Panel />
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
 
-        <Canvas.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="Select all" Command="{Binding SelectAllCommand}" />
-                <Separator />
-                <MenuItem Header="Paste" Command="{Binding PasteCommand}" />
-            </ContextMenu>
-        </Canvas.ContextMenu>
+                <TabControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HmiPanelViewModel">
+                        <Grid PointerPressed="OnPanelPointerPressed">
+                            <i:Interaction.Behaviors>
+                                <b:PanelDragDropBehavior />
+                            </i:Interaction.Behaviors>
 
-        <ItemsControl ItemsSource="{Binding Elements}"
-                        Width="{Binding $parent[Canvas].Bounds.Width}"
-                        Height="{Binding $parent[Canvas].Bounds.Height}">
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Rename" Command="{Binding StartRenameCommand}" />
+                                    <Separator />
+                                    <MenuItem Header="Delete"
+                                            Command="{Binding $parent[TabControl].((vm:MainViewModel)DataContext).DeletePanelCommand}"
+                                            CommandParameter="{Binding}" />
+                                </ContextMenu>
+                            </Grid.ContextMenu>
 
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Canvas />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+                            <TextBlock Text="{Binding PanelName}"
+                                    IsVisible="{Binding !IsEditing}"
+                                    VerticalAlignment="Center">
+                            </TextBlock>
 
-            <ItemsControl.ItemContainerTheme>
-                <ControlTheme TargetType="ContentPresenter" x:DataType="vm:HmiElementViewModel">
-                    <Setter Property="Canvas.Left" Value="{Binding X}" />
-                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
-                </ControlTheme>
-            </ItemsControl.ItemContainerTheme>
+                            <TextBox Text="{Binding PanelName}"
+                                    IsVisible="{Binding IsEditing}"
+                                    VerticalAlignment="Center"
+                                    Classes="editablePanel">
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:HmiElementViewModel">
-                    <Grid Width="{Binding Width}" Height="{Binding Height}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding EndRenameCommand}"
+                                        CommandParameter="False" />
+                                    <KeyBinding Gesture="Escape" Command="{Binding EndRenameCommand}"
+                                        CommandParameter="True" />
+                                </TextBox.KeyBindings>
 
-                        <Grid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Cut" Command="{Binding $parent[UserControl].DataContext.CutCommand}" />
-                                <MenuItem Header="Copy" Command="{Binding $parent[UserControl].DataContext.CopyCommand}" />
-                                <Separator />
-                                <MenuItem Header="Delete" Command="{Binding $parent[UserControl].DataContext.DeleteCommand}" />
-                            </ContextMenu>
-                        </Grid.ContextMenu>
+                                <i:Interaction.Behaviors>
+                                    <b:PanelEditingBehavior />
+                                </i:Interaction.Behaviors>
+                            </TextBox>
+                        </Grid>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+            </TabControl>
 
+            <Button Grid.Column="1"
+                    Content="+"
+                    Command="{Binding AddPanelCommand}"
+                    Width="35" Height="35"
+                    HorizontalContentAlignment="Center"
+                    VerticalAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Margin="5,0,0,0"
+                    ToolTip.Tip="Add new panel" />
+        </Grid>
+
+        <ContentControl Content="{Binding SelectedPanel}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="vm:HmiPanelViewModel">
+                    <Canvas x:Name="MainCanvas" Background="White" Height="600">
                         <i:Interaction.Behaviors>
-                            <b:DraggableBehavior />
+                            <b:CanvasSelectionBehavior />
                         </i:Interaction.Behaviors>
 
-                        <Border Background="Orange"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
-                                    ConverterParameter={x:Static vm:ShapeType.Rectangle}}">
-                                <TextBlock Text="{Binding Text}"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Foreground="Black" />
-                        </Border>
+                        <Canvas.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Select all" Command="{Binding SelectAllCommand}" />
+                                <Separator />
+                                <MenuItem Header="Paste" Command="{Binding PasteCommand}" />
+                            </ContextMenu>
+                        </Canvas.ContextMenu>
 
-                        <Panel IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
-                                ConverterParameter={x:Static vm:ShapeType.Ellipse}}">
-                            <Ellipse Fill="Orange"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Stretch" />
-                            <TextBlock Text="{Binding Text}"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Foreground="Black" />
-                        </Panel>
+                        <ItemsControl ItemsSource="{Binding Elements}"
+                                      Width="{Binding $parent[Canvas].Bounds.Width}"
+                                      Height="{Binding $parent[Canvas].Bounds.Height}">
 
-                        <Border BorderBrush="DodgerBlue"
-                                BorderThickness="2"
-                                Background="Transparent"
-                                IsHitTestVisible="False"
-                                IsVisible="{Binding IsSelected}" />
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
 
-                        <Rectangle Width="10" Height="10"
-                                    Fill="Blue"
-                                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                                    Margin="0,-5,-5,0"
-                                    Cursor="TopRightCorner"
-                                    IsVisible="{Binding IsSelected}">
+                            <ItemsControl.ItemContainerTheme>
+                                <ControlTheme TargetType="ContentPresenter" x:DataType="vm:HmiElementViewModel">
+                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                </ControlTheme>
+                            </ItemsControl.ItemContainerTheme>
 
-                            <i:Interaction.Behaviors>
-                                <b:ResizableBehavior />
-                            </i:Interaction.Behaviors>
-                        </Rectangle>
-                    </Grid>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:HmiElementViewModel">
+                                    <Grid Width="{Binding Width}" Height="{Binding Height}">
+
+                                        <Grid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Cut" Command="{Binding $parent[UserControl].DataContext.SelectedPanel.CutCommand}" />
+                                                <MenuItem Header="Copy" Command="{Binding $parent[UserControl].DataContext.SelectedPanel.CopyCommand}" />
+                                                <Separator />
+                                                <MenuItem Header="Delete" Command="{Binding $parent[UserControl].DataContext.SelectedPanel.DeleteCommand}" />
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+
+                                        <i:Interaction.Behaviors>
+                                            <b:DraggableBehavior />
+                                        </i:Interaction.Behaviors>
+
+                                        <Border Background="Orange"
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch"
+                                                IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                                    ConverterParameter={x:Static vm:ShapeType.Rectangle}}">
+                                            <TextBlock Text="{Binding Text}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="Black" />
+                                        </Border>
+
+                                        <Panel IsVisible="{Binding ShapeType, Converter={x:Static ObjectConverters.Equal},
+                                                ConverterParameter={x:Static vm:ShapeType.Ellipse}}">
+                                            <Ellipse Fill="Orange"
+                                                     HorizontalAlignment="Stretch"
+                                                     VerticalAlignment="Stretch" />
+                                            <TextBlock Text="{Binding Text}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="Black" />
+                                        </Panel>
+
+                                        <Border BorderBrush="DodgerBlue"
+                                                BorderThickness="2"
+                                                Background="Transparent"
+                                                IsHitTestVisible="False"
+                                                IsVisible="{Binding IsSelected}" />
+
+                                        <Rectangle Width="10" Height="10"
+                                                   Fill="Blue"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                   Margin="0,-5,-5,0"
+                                                   Cursor="TopRightCorner"
+                                                   IsVisible="{Binding IsSelected}">
+
+                                            <i:Interaction.Behaviors>
+                                                <b:ResizableBehavior />
+                                            </i:Interaction.Behaviors>
+                                        </Rectangle>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Canvas>
                 </DataTemplate>
-            </ItemsControl.ItemTemplate>
-
-        </ItemsControl>
-    </Canvas>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+    </StackPanel>
 </UserControl>

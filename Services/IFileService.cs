@@ -9,7 +9,7 @@ public interface IFileService
 {
     string? FilePath { get; }
 
-    Task SaveAsync(string path, IEnumerable<HmiElementViewModel> elements);
-    Task<List<HmiElementViewModel>> LoadAsync(string path);
+    Task SaveAsync(string filePath, IEnumerable<HmiPanelViewModel> panels);
+    Task<List<HmiPanelDto>> LoadAsync(string filePath);
     void Reset();
 }

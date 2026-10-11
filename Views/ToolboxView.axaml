@@ -14,12 +14,12 @@
             <TextBlock Text="Toolbox" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" />
 
             <Button Content="Rectangle"
-                    Command="{Binding AddCommand}"
+                    Command="{Binding SelectedPanel.AddCommand}"
                     CommandParameter="Rectangle"
                     HorizontalAlignment="Stretch" />
 
             <Button Content="Circle"
-                    Command="{Binding AddCommand}"
+                    Command="{Binding SelectedPanel.AddCommand}"
                     CommandParameter="Ellipse"
                     HorizontalAlignment="Stretch" />
         </StackPanel>

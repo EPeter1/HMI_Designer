@@ -10,14 +10,17 @@ public partial class CanvasView : UserControl
     public CanvasView()
     {
         InitializeComponent();
-        MainCanvas.PointerPressed += OnCanvasPointerPressed;
     }
 
-    private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs eventArgs)
+    private void OnPanelPointerPressed(object? sender, PointerPressedEventArgs eventArgs)
     {
-        if (eventArgs.Source == MainCanvas && DataContext is MainViewModel mainVm)
+        if (eventArgs.ClickCount == 2)
         {
-            mainVm.ClearSelection();
+            if (sender is Control control && control.DataContext is HmiPanelViewModel panelVm)
+            {
+                panelVm.StartRename();
+                eventArgs.Handled = true;
+            }
         }
     }
 }

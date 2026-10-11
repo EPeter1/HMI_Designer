@@ -43,7 +43,7 @@ public class DraggableBehavior : Behavior<Grid>
         var canvas = AssociatedObject?.FindLogicalAncestorOfType<Canvas>();
 
         if (AssociatedObject?.DataContext is HmiElementViewModel elementVm &&
-            canvas?.DataContext is MainViewModel mainVm)
+            canvas?.DataContext is HmiPanelViewModel panelVm)
         {
             if (point.Properties.IsLeftButtonPressed)
             {
@@ -56,7 +56,7 @@ public class DraggableBehavior : Behavior<Grid>
 
                 if (isCtrlDown || isShiftDown || !elementVm.IsSelected)
                 {
-                    mainVm.HandleSelection(elementVm, isCtrlDown, isShiftDown);
+                    panelVm.HandleSelection(elementVm, isCtrlDown, isShiftDown);
                 }
 
                 eventArgs.Pointer.Capture(AssociatedObject);
@@ -66,7 +66,7 @@ public class DraggableBehavior : Behavior<Grid>
             {
                 if (!elementVm.IsSelected)
                 {
-                    mainVm.HandleSelection(elementVm, false, false);
+                    panelVm.HandleSelection(elementVm, false, false);
                 }
             }
         }
@@ -84,9 +84,9 @@ public class DraggableBehavior : Behavior<Grid>
                 var delta = currentPosition - _pointerStartPosition;
                 _pointerStartPosition = currentPosition;
 
-                if (canvas.DataContext is MainViewModel mainVm)
+                if (canvas.DataContext is HmiPanelViewModel panelVm)
                 {
-                    mainVm.MoveSelectedElements(delta.X, delta.Y);
+                    panelVm.MoveSelectedElements(delta.X, delta.Y);
                 }
 
                 eventArgs.Handled = true;
